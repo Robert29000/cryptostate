@@ -22,7 +22,7 @@ contract MultiOwnable {
 
     struct Operation {
         bytes32 data;
-        bool executed;
+        bool confirmed;
     }
 
     modifier onlyOwner() {
@@ -50,7 +50,7 @@ contract MultiOwnable {
         _ ;
     }
 
-    modifier notConfirmed(uint operationId, address _addr) {
+    modifier notConfirmedByAddress(uint operationId, address _addr) {
         require(!confirmations[operationId][_addr]);
         _ ;
     }
@@ -60,8 +60,8 @@ contract MultiOwnable {
         _ ;
     }
 
-    modifier notExecuted(uint operationId) {
-        require(!operations[operationId].executed);
+    modifier notConfirmed(uint operationId) {
+        require(!operations[operationId].confirmed);
         _ ;
     }
 
@@ -131,16 +131,19 @@ contract MultiOwnable {
         emit OperationSubmitted(operationId);
     }
 
-    function confirmOperation(uint operationId) public onlyOwner operationExists(operationId) notConfirmed(operationId, msg.sender) 
+    function confirmOperation(uint operationId) public onlyOwner operationExists(operationId) notConfirmedByAddress(operationId, msg.sender) 
                                             returns (bool confirmed)
     {
         confirmations[operationId][msg.sender] = true;
         confirmed = isConfirmed(operationId);
+        if (confirmed) {
+            operations[operationId].confirmed = true;
+        }
 
         emit OperationConfirmed(operationId, msg.sender);
     }
 
-    function revokeConfirmation(uint operationId) public onlyOwner Confirmed(operationId, msg.sender) notExecuted(operationId) {
+    function revokeConfirmation(uint operationId) public onlyOwner Confirmed(operationId, msg.sender) notConfirmed(operationId) {
         confirmations[operationId][msg.sender] = false;
 
         emit OperationRevoked(operationId, msg.sender);
@@ -150,7 +153,7 @@ contract MultiOwnable {
         operationId = operationCount;
         operations[operationId] = Operation({
             data: _data,
-            executed: false
+            confirmed: false
         });
         operationCount += 1;
     }

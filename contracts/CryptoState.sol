@@ -18,7 +18,7 @@ contract CryptoState is IERC20withKYC, MultiOwnable {
 
     mapping (address => bool) public kyc_addrs;
     mapping (address => uint) public balances;
-    mapping (address => mapping (address => uint)) allowed;
+    mapping (address => mapping (address => uint)) public allowed;
     mapping (uint => address) public address_operations; // operationId => address
     mapping (address => bool) public wait_for_confirmations;
 
@@ -48,7 +48,7 @@ contract CryptoState is IERC20withKYC, MultiOwnable {
         _ ;
     }
 
-    constructor(string memory _name, string memory _symbol, uint _decimals, uint[] memory initialSupply, address[] memory _owners, uint _required)
+    constructor(string memory _name, string memory _symbol, uint _decimals, address[] memory _owners, uint[] memory initialSupply, uint _required)
         MultiOwnable(_owners, _required) 
     {
         require(initialSupply.length == _owners.length);
